@@ -4,7 +4,7 @@
 
 Submitted by: **Hitesh Panchal**
 
-Time spent: **3** hours spent in total
+Time spent: **6** hours spent in total
 
 ## User Stories
 
@@ -14,7 +14,7 @@ The following **required** functionality is completed:
 * [x] User can **tap a todo item in the list and bring up an edit screen for the todo item** and then have any changes to the text reflected in the todo list.
 * [x] User can **persist todo items** and retrieve them properly on app restart
 
-The following Additional functionality is completed:
+The following Additional functionality is implemented:
 
 * [x] tems are persisted in SQLite using ActiveAndroid. 
 * [x] User can add priority along with the task
@@ -29,7 +29,7 @@ Here's a walkthrough of implemented user stories:
 
 ## Notes
 
-Describe any challenges encountered while building the app.
+Faced Troubles for Using SQLite until I found the ActiveAndroid API details from internet. 
 
 ## License
 
