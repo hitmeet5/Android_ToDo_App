@@ -3,14 +3,21 @@
     package="com.ghanshyamguides.simpletodo" >
 
     <application
+        android:name="com.activeandroid.app.Application"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="Simple ToDo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
+        <meta-data
+            android:name="AA_DB_NAME"
+            android:value="ToDoClient.db" />
+        <meta-data
+            android:name="AA_DB_VERSION"
+            android:value="1" />
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name"
+            android:label="Simple ToDo"
             android:theme="@style/AppTheme.NoActionBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,7 +27,7 @@
         </activity>
         <activity
             android:name=".EditItemActivity"
-            android:label="@string/title_activity_edit_item"
+            android:label="Edit Item Activity"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
     </application>

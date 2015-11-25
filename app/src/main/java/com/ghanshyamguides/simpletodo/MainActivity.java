@@ -1,9 +1,9 @@
 package com.ghanshyamguides.simpletodo;
 
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -11,21 +11,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NewItemDialog.NewItemDialogListener {
 
     private ListView taskList;
-    private EditText taskItem;
-    private ArrayList<String> items;
-    private ArrayAdapter<String> itemAdapter;
+    private ArrayList<TodoItem> items;
+    private ArrayAdapter<TodoItem> itemAdapter;
     private final int REQUEST_CODE = 10;
 
     @Override
@@ -39,15 +34,18 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                onItemAddEvent();
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
             }
         });
 
+
+
         taskList = (ListView)findViewById(R.id.itemList);
-        taskItem = (EditText)findViewById(R.id.itemText);
-        readItemsFromDatabase();
-        itemAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1, items);
+        items = TodoItem.loadAll();
+        //taskItem = (EditText)findViewById(R.id.itemText);
+       // readItemsFromDatabase();
+        itemAdapter = new com.ghanshyamguides.simpletodo.TodoItemAdapter(this,items);
         taskList.setAdapter(itemAdapter);
         setupListViewListener();
 
@@ -56,29 +54,32 @@ public class MainActivity extends AppCompatActivity {
     private void setupListViewListener() {
         taskList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick (AdapterView<?> adapter, View item, int pos, long id) {
+            public boolean onItemLongClick(AdapterView<?> adapter, View item, int pos, long id) {
+                items.get(pos).delete();
                 items.remove(pos);
                 itemAdapter.notifyDataSetChanged();
-                storeItemsToDatabase();
                 return true;
             }
         });
 
         taskList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick (AdapterView<?> adapter, View item, int pos, long id) {
-                Intent intent = new Intent(MainActivity.this, EditItemActivity.class);
-                intent.putExtra("item", items.get(pos));
-                intent.putExtra("itemPos", String.valueOf(pos));
-                startActivityForResult(intent, REQUEST_CODE);
+            public void onItemClick(AdapterView<?> adapter, View item, int pos, long id) {
+                TodoItem currentItem = items.get(pos);
+                Intent i = new Intent(MainActivity.this, EditItemActivity.class);
+                i.putExtra("priority", currentItem.Priority);
+                i.putExtra("position", pos);
+                i.putExtra("id", currentItem.getId());
+                i.putExtra("item", currentItem.Title);
+                startActivityForResult(i, REQUEST_CODE);
             }
         });
 
 
     }
 
-    private void readItemsFromDatabase() {
-        File filesDir = getFilesDir();
+   /* private void readItemsFromDatabase() {
+       File filesDir = getFilesDir();
         File todoFile = new File(filesDir, "todo.txt");
         try {
             items = new ArrayList<String>(FileUtils.readLines(todoFile));
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e ) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -116,28 +117,64 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
+        if (id == R.id.add_new) {
+            onItemAddEvent();
+            return true;
+        }
+
+
         return super.onOptionsItemSelected(item);
     }
 
-    public void onItemAddEvent(View view) {
-        String newTaskItem =  taskItem.getText().toString();
+    public void onItemAddEvent() {
+       /* String newTaskItem =  taskItem.getText().toString();
         itemAdapter.add(newTaskItem);
         storeItemsToDatabase();
-        taskItem.setText("");
+        taskItem.setText("");*/
+        FragmentManager fm = getFragmentManager();
+        com.ghanshyamguides.simpletodo.NewItemDialog frag = new com.ghanshyamguides.simpletodo.NewItemDialog();
+        frag.show(fm, "fragment_add_item");
+    }
+
+    public void onItemAddEvent(View view) {
+       /* String newTaskItem =  taskItem.getText().toString();
+        itemAdapter.add(newTaskItem);
+        storeItemsToDatabase();
+        taskItem.setText("");*/
+        FragmentManager fm = getFragmentManager();
+        com.ghanshyamguides.simpletodo.NewItemDialog frag = new com.ghanshyamguides.simpletodo.NewItemDialog();
+        frag.show(fm, "fragment_add_item");
+  }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent editItem) {
+        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
+            int position = editItem.getExtras().getInt("position");
+            String editedItem = editItem.getExtras().getString("item");
+            String priority = editItem.getExtras().getString("priority");
+
+            TodoItem item = items.get(position);
+            item.Title = editedItem;
+            item.Priority = priority;
+            item.save();
+
+            itemAdapter.notifyDataSetChanged();
+            Toast.makeText(this, "Item edited", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent editItem) {
-        // REQUEST_CODE is defined above
-        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
-            // Extract name value from result extras
-            String item = editItem.getExtras().getString("item");
-            int itemPos = Integer.parseInt(editItem.getExtras().getString("itemPos"));
-            items.set(itemPos, item);
-            itemAdapter.notifyDataSetChanged();
-            storeItemsToDatabase();
-
+    public void onFinishEditDialog(String title, String priority) {
+        if(priority==null){
+            priority="Low";
+        }
+        if(title==null || title.trim().equals("")) {
+            Toast.makeText(this, "Empty Task ignored", Toast.LENGTH_SHORT).show();
+        } else {
+            com.ghanshyamguides.simpletodo.TodoItem item = new com.ghanshyamguides.simpletodo.TodoItem(title, priority);
+            item.save();
+            itemAdapter.add(item);
         }
     }
 }
