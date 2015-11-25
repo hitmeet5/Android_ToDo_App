@@ -16,7 +16,7 @@ The following **required** functionality is completed:
 
 The following Additional functionality is implemented:
 
-* [x] tems are persisted in SQLite using ActiveAndroid. 
+* [x] Items are persisted in SQLite using ActiveAndroid. 
 * [x] User can add priority along with the task
 * [x] Task creation dialog implemented using DialogFragment
 * [x] Validation for preventing empty string task creation. 
